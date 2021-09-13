@@ -10,15 +10,19 @@ namespace RocketClicker
     public class ScoreHandler : MonoBehaviour
     {
         #region Variables
-        public static float score;
-        public static float scorePerClick;
-        public static float scorePerSecond;
+        public float score;
+        public float scorePerClick;
+        public float scorePerSecond;
+        float period;
+        float time;
         float trillion = 1000000000000;
         float billion = 1000000000;
         float million = 1000000;
         [SerializeField] Text scoreText;
         [SerializeField] GameObject devButton;
         [SerializeField] EventSystem eventSystem;
+        [SerializeField] GameObject clickText;
+        [SerializeField] GameObject parentObject;
         #endregion
 
         #region Start
@@ -27,7 +31,11 @@ namespace RocketClicker
 #if UNITY_EDITOR
             devButton.SetActive(true);
 #endif
-            Load();
+            period = 1f;
+            score = 0;
+            scorePerClick = 1;
+            scorePerSecond = 0;
+            LoadData();
             UpdateText();
         }
         #endregion
@@ -36,22 +44,33 @@ namespace RocketClicker
         private void Update()
         {
             ButtonFix();
+            UpdateText();
+            IdlePoints();
         }
         #endregion
 
         #region ButtonFix
         private void ButtonFix()
         {
+            // Makes sure the button hover colour is the default hover colour
             eventSystem.SetSelectedGameObject(null);
         }
         #endregion
 
-        #region Load
-        private void Load()
+        #region LoadData
+        private void LoadData()
         {
+            // Load data from playerprefs
             score = PlayerPrefs.GetFloat("score", 0);
-            scorePerClick = PlayerPrefs.GetFloat("scorePerClick", 1);
-            scorePerSecond = PlayerPrefs.GetFloat("scorePerSecond", 0);
+        }
+        #endregion
+
+        #region SaveData
+        private void SaveData()
+        {
+            // Save data to playerprefs
+            PlayerPrefs.SetFloat("score", score);
+            PlayerPrefs.Save();
         }
         #endregion
 
@@ -59,7 +78,6 @@ namespace RocketClicker
         public void Dev()
         {
             score *= 10;
-            UpdateText();
         }
         #endregion
 
@@ -67,65 +85,73 @@ namespace RocketClicker
         public void ClickButton()
         {
             score += scorePerClick;
-            UpdateText();
+            // Spawn in clicktext prefab
+            GameObject childObject = Instantiate(clickText) as GameObject;
+            //childObject.transform.parent = parentObject.transform;
+            childObject.transform.SetParent(parentObject.transform, false);
         }
+        #endregion
+
+        #region IdlePoints
+        private void IdlePoints()
+        {
+            if (Time.time > time + period)
+            {
+                time = Time.time;
+                // Add idle points to score
+                score += scorePerSecond;
+            }
+        }
+
         #endregion
 
         #region UpdateText
         void UpdateText()
         {
-            // If score is 0
+            // Display the work click if the score is equal to 0
             if (score == 0)
             {
-                scoreText.text = "Click"; // Show click text
+                scoreText.text = "Click";
             }
             else
             {
-                // If score is infinity
+                // Display a message if the score is infinity
                 if (score == Mathf.Infinity)
                 {
-                    scoreText.text = "You have reached the end"; // Display message for infinite score
+                    scoreText.text = "KM: Infinity";
                 }
-                // If score is over a trillion
+                // Use the word trillion if the score is above or equal to a trillion
                 else if (score >= trillion)
                 {
-                    scoreText.text = "KM: " + (score / trillion) + " trillion"; // Display score with the trillion text
+                    scoreText.text = "KM: " + (score / trillion) + " trillion";
                 }
-                // If score is over a billion
+                // Use the word billion if the score is above or equal to a billion
                 else if (score >= billion)
                 {
-                    scoreText.text = "KM: " + (score / billion) + " billion"; // Display score with the billion text
+                    scoreText.text = "KM: " + (score / billion) + " billion";
                 }
-                // If score is over a million
+                // Use the word million if the score is above or equal to a million
                 else if (score >= million)
                 {
-                    scoreText.text = "KM: " + (score / million) + " million"; // Display score with the million text
+                    scoreText.text = "KM: " + (score / million) + " million";
                 }
                 else
                 {
-                    scoreText.text = "KM: " + score; // Display score
+                    scoreText.text = "KM: " + score;
                 }
             }
-
-            Debug.Log("Score: " + score);
-            Debug.Log("Score Per Click: " + scorePerClick);
-            Debug.Log("Score Per Second: " + scorePerSecond);
-
-            PlayerPrefs.SetFloat("score", score);
-            PlayerPrefs.SetFloat("scorePerClick", scorePerClick);
-            PlayerPrefs.SetFloat("scorePerClick", scorePerSecond);
-            PlayerPrefs.Save();
+            SaveData();
         }
         #endregion
 
         #region ResetProgress
         public void ResetProgress()
         {
+            // Resets variables and deletes data from playerprefs
             PlayerPrefs.DeleteAll();
             score = 0;
             scorePerClick = 1;
             scorePerSecond = 0;
-            UpdateText();
         }
         #endregion
     }
