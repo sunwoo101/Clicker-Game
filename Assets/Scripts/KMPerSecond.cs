@@ -36,7 +36,7 @@ namespace RocketClicker
             }
         }
         #endregion
-
+        
         #region Click
         public void Click()
         {

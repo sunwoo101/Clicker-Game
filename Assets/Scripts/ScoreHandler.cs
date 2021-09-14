@@ -62,14 +62,20 @@ namespace RocketClicker
         {
             // Load data from playerprefs
             score = PlayerPrefs.GetFloat("score", 0);
+            scorePerClick = PlayerPrefs.GetFloat("scorePerClick", 1);
+            scorePerSecond = PlayerPrefs.GetFloat("scorePerSecond", 1);
         }
         #endregion
-
+        
         #region SaveData
         private void SaveData()
         {
             // Save data to playerprefs
             PlayerPrefs.SetFloat("score", score);
+            PlayerPrefs.Save();
+            PlayerPrefs.SetFloat("scorePerClick", scorePerClick);
+            PlayerPrefs.Save();
+            PlayerPrefs.SetFloat("scorePerSecond", scorePerSecond);
             PlayerPrefs.Save();
         }
         #endregion

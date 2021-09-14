@@ -39,7 +39,7 @@ namespace RocketClicker
             if (Time.time > time + period)
             {
                 time = Time.time;
-                alpha -= 0.01f;
+                alpha -= 0.05f;
                 clickText.CrossFadeAlpha(alpha, 0, true);
             }
             if (alpha <= 0)

@@ -43,7 +43,7 @@ namespace RocketClicker
             LoadData();
         }
         #endregion
-
+        
         #region Update
         private void Update()
         {
@@ -54,14 +54,23 @@ namespace RocketClicker
         #region LoadData
         private void LoadData()
         {
-
+            // Save data to playerprefs
+            for (int i = 0; i < upgrades.Length; i++)
+            {
+                upgrades[i].count = PlayerPrefs.GetInt(i.ToString(), 0);
+            }
         }
         #endregion
 
         #region SaveData
         private void SaveData()
         {
-
+            // Save data to playerprefs
+            for (int i = 0; i < upgrades.Length; i++)
+            {
+                PlayerPrefs.SetInt(i.ToString(), upgrades[i].count);
+                PlayerPrefs.Save();
+            }
         }
         #endregion
 
@@ -167,6 +176,7 @@ namespace RocketClicker
                     upgrades[i].sellButton.colors = sellButtonColor;
                 }
                 #endregion
+                SaveData();
             }
         }
         #endregion
