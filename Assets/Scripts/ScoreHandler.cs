@@ -18,6 +18,8 @@ namespace RocketClicker
         float trillion = 1000000000000;
         float billion = 1000000000;
         float million = 1000000;
+        float lastSaved;
+        float saveFrequency;
         [SerializeField] Text scoreText;
         [SerializeField] GameObject devButton;
         [SerializeField] EventSystem eventSystem;
@@ -35,6 +37,7 @@ namespace RocketClicker
             score = 0;
             scorePerClick = 1;
             scorePerSecond = 0;
+            saveFrequency = 0.2f;
             LoadData();
             UpdateText();
         }
@@ -46,6 +49,7 @@ namespace RocketClicker
             ButtonFix();
             UpdateText();
             IdlePoints();
+            SaveTimer();
         }
         #endregion
 
@@ -66,7 +70,18 @@ namespace RocketClicker
             scorePerSecond = PlayerPrefs.GetFloat("scorePerSecond", 1);
         }
         #endregion
-        
+
+        #region SaveTimer
+        private void SaveTimer()
+        {
+            if (Time.time > lastSaved + saveFrequency)
+            {
+                lastSaved = Time.time;
+                SaveData();
+            }
+        }
+        #endregion
+
         #region SaveData
         private void SaveData()
         {
@@ -146,7 +161,6 @@ namespace RocketClicker
                     scoreText.text = "KM: " + score;
                 }
             }
-            SaveData();
         }
         #endregion
 

@@ -26,6 +26,7 @@ namespace RocketClicker
             [Header("This should not be changed")]
             public int count;
             public float price;
+            public bool unlocked;
         }
 
         public Upgrade[] upgrades;
@@ -33,21 +34,25 @@ namespace RocketClicker
         float trillion = 1000000000000;
         float billion = 1000000000;
         float million = 1000000;
+        float lastSaved;
+        float saveFrequency;
         #endregion
 
         #region Start
         private void Start()
         {
             scoreHandler = GetComponent<ScoreHandler>();
+            saveFrequency = 0.2f;
 
             LoadData();
         }
         #endregion
-        
+
         #region Update
         private void Update()
         {
             DisplayPrice();
+            SaveTimer();
         }
         #endregion
 
@@ -57,7 +62,27 @@ namespace RocketClicker
             // Save data to playerprefs
             for (int i = 0; i < upgrades.Length; i++)
             {
-                upgrades[i].count = PlayerPrefs.GetInt(i.ToString(), 0);
+                upgrades[i].count = PlayerPrefs.GetInt(i.ToString() + "Count", 0);
+                string unlockedString = PlayerPrefs.GetString(i.ToString() + "Unlocked", "False");
+                if (unlockedString == "True")
+                {
+                    upgrades[i].unlocked = true;
+                }
+                else
+                {
+                    upgrades[i].unlocked = false;
+                }
+            }
+        }
+        #endregion
+
+        #region SaveTimer
+        private void SaveTimer()
+        {
+            if (Time.time > lastSaved + saveFrequency)
+            {
+                lastSaved = Time.time;
+                SaveData();
             }
         }
         #endregion
@@ -68,7 +93,9 @@ namespace RocketClicker
             // Save data to playerprefs
             for (int i = 0; i < upgrades.Length; i++)
             {
-                PlayerPrefs.SetInt(i.ToString(), upgrades[i].count);
+                PlayerPrefs.SetInt(i.ToString() + "Count", upgrades[i].count);
+                PlayerPrefs.Save();
+                PlayerPrefs.SetString(i.ToString() + "Unlocked", upgrades[i].unlocked.ToString());
                 PlayerPrefs.Save();
             }
         }
@@ -93,9 +120,20 @@ namespace RocketClicker
                 upgrades[i].price = Mathf.Round(upgrades[i].price);
                 #endregion
 
+                #region Unlock Upgrade
+                if (scoreHandler.score >= upgrades[i].price)
+                {
+                    upgrades[i].unlocked = true;
+                }
+                #endregion
+
                 // Display buy price
                 #region DisplayUpgradePrice
-                if (upgrades[i].price == Mathf.Infinity)
+                if (upgrades[i].unlocked == false)
+                {
+                    upgrades[i].buyText.text = "Locked";
+                }
+                else if (upgrades[i].price == Mathf.Infinity)
                 {
                     upgrades[i].buyText.text = upgrades[i].upgradeName + ": " + "Infinity KM";
                 }
@@ -122,7 +160,11 @@ namespace RocketClicker
 
                 // Display upgrades owned
                 #region DisplayUpgradesOwned
-                if (upgrades[i].count == Mathf.Infinity)
+                if (upgrades[i].unlocked == false)
+                {
+                    upgrades[i].sellText.text = "Locked";
+                }
+                else if (upgrades[i].count == Mathf.Infinity)
                 {
                     upgrades[i].sellText.text = upgrades[i].upgradeName + ": " + "Infinity owned";
                 }
@@ -149,10 +191,16 @@ namespace RocketClicker
 
                 #region ChangeButtonColours
                 // Change the button colour if you cant buy the upgrade
-                if (scoreHandler.score >= upgrades[i].price)
+                if (upgrades[i].unlocked == false)
                 {
                     var buyButtonColor = upgrades[i].buyButton.colors;
-                    buyButtonColor.normalColor = new Color(255, 255, 255, 0.3f);
+                    buyButtonColor.normalColor = new Color(0.3f, 0.3f, 0.3f, 0.3f);
+                    upgrades[i].buyButton.colors = buyButtonColor;
+                }
+                else if (scoreHandler.score >= upgrades[i].price)
+                {
+                    var buyButtonColor = upgrades[i].buyButton.colors;
+                    buyButtonColor.normalColor = new Color(1, 1, 1, 0.3f);
                     upgrades[i].buyButton.colors = buyButtonColor;
                 }
                 else
@@ -163,10 +211,16 @@ namespace RocketClicker
                 }
 
                 // Change the button colour if you cant sell the upgrade
-                if (upgrades[i].count > 0)
+                if (upgrades[i].unlocked == false)
                 {
                     var sellButtonColor = upgrades[i].sellButton.colors;
-                    sellButtonColor.normalColor = new Color(255, 255, 255, 0.3f);
+                    sellButtonColor.normalColor = new Color(0.3f, 0.3f, 0.3f, 0.3f);
+                    upgrades[i].sellButton.colors = sellButtonColor;
+                }
+                else if (upgrades[i].count > 0)
+                {
+                    var sellButtonColor = upgrades[i].sellButton.colors;
+                    sellButtonColor.normalColor = new Color(1, 1, 1, 0.3f);
                     upgrades[i].sellButton.colors = sellButtonColor;
                 }
                 else
@@ -176,7 +230,6 @@ namespace RocketClicker
                     upgrades[i].sellButton.colors = sellButtonColor;
                 }
                 #endregion
-                SaveData();
             }
         }
         #endregion
@@ -221,6 +274,7 @@ namespace RocketClicker
             for (int i = 0; i < upgrades.Length; i++)
             {
                 upgrades[i].count = 0;
+                upgrades[i].unlocked = false;
             }
         }
         #endregion
